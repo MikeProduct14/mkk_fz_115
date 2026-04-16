@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 
 const navItems = [
-  { href: '/dashboard', label: 'Главная' },
+  { href: '/dashboard', label: 'Дашборд' },
   { href: '/dashboard/clients', label: 'Клиенты' },
   { href: '/dashboard/pvk', label: 'ПВК' },
   { href: '/dashboard/settings', label: 'Настройки' },

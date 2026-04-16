@@ -4,6 +4,8 @@ import { Button } from '@/components/ui/button'
 import { DashboardNav } from '@/components/dashboard-nav'
 import { signOut } from '@/app/(auth)/actions'
 
+export const dynamic = 'force-dynamic'
+
 export default async function DashboardLayout({
   children,
 }: {
@@ -19,13 +21,21 @@ export default async function DashboardLayout({
     redirect('/login')
   }
 
+  const { data: organization } = await supabase
+    .from('organizations')
+    .select('name')
+    .eq('user_id', user.id)
+    .single()
+
   return (
     <div className="flex min-h-screen">
       {/* Sidebar */}
       <aside className="w-64 border-r bg-muted/40 p-6">
         <div className="mb-8">
           <h2 className="text-xl font-bold">Compliance MFO</h2>
-          <p className="text-sm text-muted-foreground">{user.email}</p>
+          <p className="text-sm text-muted-foreground">
+            {organization?.name ?? user.email}
+          </p>
         </div>
 
         <nav className="space-y-2">
