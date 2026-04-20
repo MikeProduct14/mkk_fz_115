@@ -68,7 +68,7 @@ export async function updateClient(clientId: string, formData: FormData) {
   const validation = clientSchema.safeParse(dataForValidation)
 
   if (!validation.success) {
-    const errors = validation.error.errors.map((e) => `${e.path.join('.')}: ${e.message}`).join(', ')
+    const errors = validation.error.issues.map((e: any) => `${e.path.join('.')}: ${e.message}`).join(', ')
     return { error: errors }
   }
 

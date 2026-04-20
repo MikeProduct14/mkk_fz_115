@@ -31,7 +31,7 @@ export async function saveOrganization(formData: FormData) {
   const validation = organizationSchema.safeParse(rawData)
 
   if (!validation.success) {
-    const errors = validation.error.errors.map((e) => e.message).join(', ')
+    const errors = validation.error.issues.map((e: any) => e.message).join(', ')
     return { error: errors }
   }
 

@@ -106,8 +106,8 @@ export async function saveClient(
     const validation = clientSchema.safeParse(dataForValidation)
 
     if (!validation.success) {
-      console.error('Validation failed:', validation.error.errors)
-      const errors = validation.error.errors.map((e) => `${e.path.join('.')}: ${e.message}`).join(', ')
+      console.error('Validation failed:', validation.error.issues)
+      const errors = validation.error.issues.map((e: any) => `${e.path.join('.')}: ${e.message}`).join(', ')
       return { error: errors }
     }
     console.log('Validation passed')
