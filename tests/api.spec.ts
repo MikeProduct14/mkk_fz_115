@@ -78,10 +78,20 @@ test.describe('API /api/fns', () => {
 })
 
 test.describe('API /api/pdf', () => {
-  test('эндпоинт существует и принимает POST', async ({ request }) => {
-    const res = await request.post('/api/pdf', {
-      data: { clientId: 'test' },
-    })
-    expect(res.status()).not.toBe(404)
+  test('возвращает 400 без clientId', async ({ request }) => {
+    const res = await request.get('/api/pdf')
+    expect([400, 401]).toContain(res.status())
+  })
+
+  test('возвращает 401 без авторизации', async ({ request }) => {
+    const res = await request.get('/api/pdf?clientId=some-id')
+    expect(res.status()).toBe(401)
+  })
+})
+
+test.describe('API /api/pvk-pdf', () => {
+  test('возвращает 401 без авторизации', async ({ request }) => {
+    const res = await request.get('/api/pvk-pdf')
+    expect(res.status()).toBe(401)
   })
 })

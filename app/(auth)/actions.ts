@@ -20,7 +20,7 @@ export async function login(formData: FormData) {
   }
 
   revalidatePath('/', 'layout')
-  redirect('/dashboard')
+  return { success: true }
 }
 
 export async function register(formData: FormData) {
@@ -30,7 +30,6 @@ export async function register(formData: FormData) {
   const password = formData.get('password') as string
   const confirmPassword = formData.get('confirmPassword') as string
 
-  // Валидация
   if (password !== confirmPassword) {
     return { error: 'Пароли не совпадают' }
   }
@@ -44,7 +43,7 @@ export async function register(formData: FormData) {
     return { error: 'Некорректный email адрес' }
   }
 
-  const { error } = await supabase.auth.signUp({
+  const { data, error } = await supabase.auth.signUp({
     email,
     password,
   })
@@ -53,8 +52,13 @@ export async function register(formData: FormData) {
     return { error: error.message }
   }
 
+  // Если сессии нет — Supabase требует подтверждения почты
+  if (!data.session) {
+    return { emailConfirmation: true }
+  }
+
   revalidatePath('/', 'layout')
-  redirect('/dashboard/settings')
+  return { success: true }
 }
 
 export async function signOut() {

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { login } from '../actions'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
@@ -9,6 +10,7 @@ import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 
 export default function LoginPage() {
+  const router = useRouter()
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
 
@@ -16,15 +18,13 @@ export default function LoginPage() {
     setError(null)
     setLoading(true)
 
-    try {
-      const result = await login(formData)
-      if (result?.error) {
-        setError(result.error)
-      }
-    } catch (err) {
-      setError('Произошла ошибка при входе')
-    } finally {
+    const result = await login(formData)
+
+    if (result?.error) {
+      setError(result.error)
       setLoading(false)
+    } else {
+      router.push('/dashboard')
     }
   }
 

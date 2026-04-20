@@ -15,7 +15,10 @@ export const MaskedInput = React.forwardRef<HTMLInputElement, MaskedInputProps>(
     const [displayValue, setDisplayValue] = React.useState('')
 
     React.useEffect(() => {
-      setDisplayValue(applyMask(value, mask))
+      // Очищаем нецифровые символы перед применением маски,
+      // так как value может прийти уже в отмасированном виде (например "123-456")
+      const digits = value.replace(/\D/g, '')
+      setDisplayValue(applyMask(digits, mask))
     }, [value, mask])
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {

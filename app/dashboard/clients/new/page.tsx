@@ -487,33 +487,42 @@ export default function NewClientPage() {
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <div className="flex items-center space-x-2">
+              <div className={`rounded-lg border p-4 transition-colors ${isPep ? 'border-amber-300 bg-amber-50 dark:bg-amber-950/20' : 'border-border'}`}>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Label htmlFor="is_pep" className="cursor-pointer font-medium">
+                      Публично значимое лицо (ПЭП)
+                    </Label>
+                    <Tooltip>
+                      <TooltipTrigger type="button">
+                        <span className="inline-flex h-5 w-5 items-center justify-center rounded-full border text-xs text-muted-foreground hover:bg-muted">
+                          ?
+                        </span>
+                      </TooltipTrigger>
+                      <TooltipContent className="max-w-xs">
+                        <p>
+                          Публично значимые лица: чиновники, судьи, военные от определённого ранга,
+                          их ближайшие родственники
+                        </p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </div>
                   <Switch
                     id="is_pep"
                     checked={isPep}
                     onCheckedChange={handlePepChange}
                   />
-                  <Label htmlFor="is_pep" className="cursor-pointer">
-                    Является ли публично значимым лицом (ПЭП)
-                  </Label>
-                  <Tooltip>
-                    <TooltipTrigger type="button">
-                      <span className="inline-flex h-5 w-5 items-center justify-center rounded-full border text-xs text-muted-foreground hover:bg-muted">
-                        ?
-                      </span>
-                    </TooltipTrigger>
-                    <TooltipContent className="max-w-xs">
-                      <p>
-                        Публично значимые лица: чиновники, судьи, военные от определённого ранга,
-                        их ближайшие родственники
-                      </p>
-                    </TooltipContent>
-                  </Tooltip>
                 </div>
-
-                {showPepDescription && (
-                  <div className="space-y-2 mt-2">
+                {!isPep && (
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    Не является
+                  </p>
+                )}
+                {isPep && (
+                  <div className="mt-3 space-y-2">
+                    <p className="text-sm font-medium text-amber-700 dark:text-amber-400">
+                      Требуется углублённая проверка клиента
+                    </p>
                     <Label htmlFor="pep_description">
                       Опишите связь с публичной должностью <span className="text-red-500">*</span>
                     </Label>

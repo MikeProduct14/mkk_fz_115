@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -24,11 +24,17 @@ interface DadataResponse {
   manager_name: string
 }
 
+// Оставляет только кириллицу, цифры, пробелы и базовую пунктуацию
+function toCyrillic(value: string): string {
+  return value.replace(/[a-zA-Z]/g, '')
+}
+
 export default function SettingsPage() {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [dadataLoading, setDadataLoading] = useState(false)
   const [inn, setInn] = useState('')
+  const [innFilled, setInnFilled] = useState(false) // были ли поля заполнены автоматом
   const [name, setName] = useState('')
   const [orgType, setOrgType] = useState<'МКК' | 'МФК' | ''>('')
   const [address, setAddress] = useState('')
@@ -37,7 +43,6 @@ export default function SettingsPage() {
   const [pvkDate, setPvkDate] = useState<Date>()
   const [innError, setInnError] = useState('')
 
-  // Утилита для конвертации Date в строку YYYY-MM-DD используя UTC
   const dateToString = (date: Date | undefined): string => {
     if (!date) return ''
     const year = date.getUTCFullYear()
@@ -46,17 +51,16 @@ export default function SettingsPage() {
     return `${year}-${month}-${day}`
   }
 
-  // Маска для ИНН
   const handleInnChange = (value: string) => {
     const cleaned = value.replace(/\D/g, '')
     if (cleaned.length <= 12) {
       setInn(cleaned)
       setInnError('')
+      setInnFilled(false)
     }
   }
 
-  // Автозаполнение по ИНН
-  const handleInnBlur = async () => {
+  const fetchByInn = async () => {
     if (!inn || inn.length < 10) return
     if (!/^\d{10}$|^\d{12}$/.test(inn)) {
       setInnError('ИНН должен содержать 10 или 12 цифр')
@@ -76,15 +80,15 @@ export default function SettingsPage() {
       } else if (data.status === 'inactive') {
         setInnError('Организация ликвидирована или недействующая')
         toast.warning('Организация недействующая')
-        // Всё равно заполняем данные
         setName(data.name)
         setAddress(data.address)
         if (data.manager_name) setSdlName(data.manager_name)
+        setInnFilled(true)
       } else {
-        // Успешно - заполняем данные
         setName(data.name)
         setAddress(data.address)
         if (data.manager_name) setSdlName(data.manager_name)
+        setInnFilled(true)
         toast.success('Данные загружены из ЕГРЮЛ')
       }
     } catch (error) {
@@ -95,7 +99,15 @@ export default function SettingsPage() {
     }
   }
 
-  // Отправка формы
+  // Автозаполнение по потере фокуса — только если поля ещё не заполнены
+  const handleInnBlur = async () => {
+    if (!innFilled && inn.length >= 10) {
+      await fetchByInn()
+    }
+  }
+
+  const innValid = /^\d{10}$|^\d{12}$/.test(inn)
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setLoading(true)
@@ -142,23 +154,33 @@ export default function SettingsPage() {
               <Label htmlFor="inn">
                 ИНН организации <span className="text-red-500">*</span>
               </Label>
-              <div className="relative">
-                <Input
-                  id="inn"
-                  name="inn"
-                  value={inn}
-                  onChange={(e) => handleInnChange(e.target.value)}
-                  onBlur={handleInnBlur}
-                  placeholder="1234567890"
-                  maxLength={12}
-                  required
-                  disabled={dadataLoading}
-                />
-                {dadataLoading && (
-                  <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-                  </div>
-                )}
+              <div className="flex gap-2">
+                <div className="relative flex-1">
+                  <Input
+                    id="inn"
+                    name="inn"
+                    value={inn}
+                    onChange={(e) => handleInnChange(e.target.value)}
+                    onBlur={handleInnBlur}
+                    placeholder="1234567890"
+                    maxLength={12}
+                    required
+                    disabled={dadataLoading}
+                  />
+                  {dadataLoading && (
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                    </div>
+                  )}
+                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={fetchByInn}
+                  disabled={!innValid || dadataLoading}
+                >
+                  {dadataLoading ? 'Загрузка...' : 'Проверить'}
+                </Button>
               </div>
               {innError && (
                 <p className="text-sm text-red-600">{innError}</p>
@@ -211,7 +233,7 @@ export default function SettingsPage() {
                 id="address"
                 name="address"
                 value={address}
-                onChange={(e) => setAddress(e.target.value)}
+                onChange={(e) => setAddress(toCyrillic(e.target.value))}
                 placeholder="г. Москва, ул. Примерная, д. 1"
               />
             </div>
@@ -223,7 +245,7 @@ export default function SettingsPage() {
                 id="sdl_name"
                 name="sdl_name"
                 value={sdlName}
-                onChange={(e) => setSdlName(e.target.value)}
+                onChange={(e) => setSdlName(toCyrillic(e.target.value))}
                 placeholder="Иванов Иван Иванович"
               />
               <p className="text-sm text-muted-foreground">
@@ -261,7 +283,6 @@ export default function SettingsPage() {
               </p>
             </div>
 
-            {/* Кнопка сохранения */}
             <div className="flex gap-4">
               <Button type="submit" disabled={loading || dadataLoading}>
                 {loading ? 'Сохранение...' : 'Сохранить и продолжить'}
