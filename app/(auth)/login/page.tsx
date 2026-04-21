@@ -9,10 +9,14 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 
+const DEMO_EMAIL = process.env.NEXT_PUBLIC_DEMO_EMAIL ?? ''
+const DEMO_PASSWORD = process.env.NEXT_PUBLIC_DEMO_PASSWORD ?? ''
+
 export default function LoginPage() {
   const router = useRouter()
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  const [demoLoading, setDemoLoading] = useState(false)
 
   async function handleSubmit(formData: FormData) {
     setError(null)
@@ -23,6 +27,24 @@ export default function LoginPage() {
     if (result?.error) {
       setError(result.error)
       setLoading(false)
+    } else {
+      router.push('/dashboard')
+    }
+  }
+
+  async function handleDemo() {
+    if (!DEMO_EMAIL || !DEMO_PASSWORD) return
+    setError(null)
+    setDemoLoading(true)
+
+    const formData = new FormData()
+    formData.append('email', DEMO_EMAIL)
+    formData.append('password', DEMO_PASSWORD)
+    const result = await login(formData)
+
+    if (result?.error) {
+      setError(result.error)
+      setDemoLoading(false)
     } else {
       router.push('/dashboard')
     }
@@ -46,7 +68,7 @@ export default function LoginPage() {
               type="email"
               placeholder="your@email.com"
               required
-              disabled={loading}
+              disabled={loading || demoLoading}
             />
           </div>
           <div className="space-y-2">
@@ -57,7 +79,7 @@ export default function LoginPage() {
               type="password"
               placeholder="••••••••"
               required
-              disabled={loading}
+              disabled={loading || demoLoading}
             />
           </div>
           {error && (
@@ -67,9 +89,20 @@ export default function LoginPage() {
           )}
         </CardContent>
         <CardFooter className="flex flex-col space-y-4">
-          <Button type="submit" className="w-full" disabled={loading}>
+          <Button type="submit" className="w-full" disabled={loading || demoLoading}>
             {loading ? 'Вход...' : 'Войти'}
           </Button>
+          {DEMO_EMAIL && DEMO_PASSWORD && (
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full"
+              disabled={loading || demoLoading}
+              onClick={handleDemo}
+            >
+              {demoLoading ? 'Вход...' : 'Войти как демо'}
+            </Button>
+          )}
           <p className="text-sm text-center text-muted-foreground">
             Нет аккаунта?{' '}
             <Link href="/register" className="text-primary hover:underline">

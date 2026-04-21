@@ -16,7 +16,12 @@ for (const key of requiredEnvVars) {
 }
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  async redirects() {
+    return [
+      { source: '/clients', destination: '/dashboard/clients', permanent: true },
+      { source: '/clients/:path*', destination: '/dashboard/clients/:path*', permanent: true },
+    ]
+  },
 }
 
 export default nextConfig
